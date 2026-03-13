@@ -4,6 +4,7 @@ export default {
     './index.html',
     './src/**/*.{vue,js,ts}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -13,14 +14,14 @@ export default {
         'text-meta': '#6B7280',
       },
       maxWidth: {
-        container: '80rem', // max-w-7xl equivalente
+        container: '80rem',
       },
       borderRadius: {
-        card: '1rem', // rounded-2xl (16px)
+        card: '1rem',
       },
       boxShadow: {
-        card: '0 1px 3px 0 rgb(0 0 0 / 0.1)',       // base
-        'card-hover': '0 4px 6px -1px rgb(0 0 0 / 0.1)', // hover
+        card: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+        'card-hover': '0 4px 6px -1px rgb(0 0 0 / 0.1)',
       },
     },
   },

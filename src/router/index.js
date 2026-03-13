@@ -4,6 +4,11 @@ import { useAuthStore } from '../stores/auth'
 const routes = [
   {
     path: '/',
+    name: 'home',
+    component: () => import('../views/HomeView.vue'),
+  },
+  {
+    path: '/directorio',
     name: 'directory',
     component: () => import('../views/DirectoryView.vue'),
   },
@@ -12,6 +17,16 @@ const routes = [
     name: 'admin',
     component: () => import('../views/AdminView.vue'),
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/directorio/:id',
+    name: 'resource-detail',
+    component: () => import('../views/ResourceDetailView.vue'),
+  },
+  {
+    path: '/reset-password',
+    name: 'reset-password',
+    component: () => import('../views/ResetPasswordView.vue'),
   },
   {
     path: '/pages/:slug',
@@ -28,9 +43,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   if (to.meta.requiresAuth) {
     const auth = useAuthStore()
-    if (!auth.user) {
-      return { name: 'directory' }
-    }
+    if (!auth.user) return { name: 'home' }
   }
 })
 

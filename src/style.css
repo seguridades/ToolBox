@@ -4,6 +4,16 @@
 
 @layer base {
   body {
-    @apply bg-white text-text-main font-sans antialiased;
+    @apply bg-white dark:bg-gray-900 text-text-main dark:text-gray-100 font-sans antialiased;
   }
+}
+
+/* Transición de rutas */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+.page-fade-enter-from,
+.page-fade-leave-to {
+  opacity: 0;
 }

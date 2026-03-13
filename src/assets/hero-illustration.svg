@@ -1,0 +1,43 @@
+<svg viewBox="0 0 420 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo cards flotantes -->
+  <rect x="20" y="60" width="140" height="90" rx="16" fill="#F3F0FF" opacity="0.7"/>
+  <rect x="30" y="72" width="60" height="8" rx="4" fill="#C4B5FD"/>
+  <rect x="30" y="88" width="100" height="6" rx="3" fill="#DDD6FE"/>
+  <rect x="30" y="102" width="80" height="6" rx="3" fill="#DDD6FE"/>
+  <rect x="30" y="120" width="40" height="16" rx="8" fill="#EDE9FE"/>
+  <rect x="76" y="120" width="40" height="16" rx="8" fill="#EDE9FE"/>
+
+  <rect x="260" y="30" width="140" height="90" rx="16" fill="#F3F0FF" opacity="0.7"/>
+  <rect x="270" y="42" width="50" height="8" rx="4" fill="#C4B5FD"/>
+  <rect x="270" y="58" width="100" height="6" rx="3" fill="#DDD6FE"/>
+  <rect x="270" y="72" width="70" height="6" rx="3" fill="#DDD6FE"/>
+  <rect x="270" y="90" width="50" height="16" rx="8" fill="#7C3AED" opacity="0.2"/>
+
+  <rect x="270" y="190" width="130" height="90" rx="16" fill="#F3F0FF" opacity="0.7"/>
+  <rect x="280" y="202" width="70" height="8" rx="4" fill="#C4B5FD"/>
+  <rect x="280" y="218" width="90" height="6" rx="3" fill="#DDD6FE"/>
+  <rect x="280" y="232" width="60" height="6" rx="3" fill="#DDD6FE"/>
+  <rect x="280" y="250" width="44" height="16" rx="8" fill="#EDE9FE"/>
+
+  <!-- Escudo central -->
+  <path d="M210 80 L270 104 L270 168 C270 200 210 224 210 224 C210 224 150 200 150 168 L150 104 Z" fill="#5D3FD3" opacity="0.12"/>
+  <path d="M210 88 L264 110 L264 166 C264 196 210 218 210 218 C210 218 156 196 156 166 L156 110 Z" fill="#5D3FD3" opacity="0.18"/>
+  <path d="M210 96 L258 116 L258 164 C258 192 210 212 210 212 C210 212 162 192 162 164 L162 116 Z" fill="#5D3FD3"/>
+
+  <!-- Check dentro del escudo -->
+  <path d="M193 155 L204 166 L228 142" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Puntos decorativos -->
+  <circle cx="120" cy="200" r="6" fill="#5D3FD3" opacity="0.2"/>
+  <circle cx="95" cy="175" r="4" fill="#5D3FD3" opacity="0.15"/>
+  <circle cx="310" cy="160" r="5" fill="#5D3FD3" opacity="0.2"/>
+  <circle cx="338" cy="178" r="3" fill="#5D3FD3" opacity="0.15"/>
+
+  <!-- Líneas de conexión sutiles -->
+  <line x1="160" y1="150" x2="130" y2="150" stroke="#C4B5FD" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6"/>
+  <line x1="260" y1="150" x2="290" y2="150" stroke="#C4B5FD" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6"/>
+
+  <!-- Tag/label flotante -->
+  <rect x="168" y="236" width="84" height="24" rx="12" fill="#5D3FD3"/>
+  <text x="210" y="252" text-anchor="middle" fill="white" font-size="10" font-family="system-ui, sans-serif" font-weight="600">seguridades.org</text>
+</svg>

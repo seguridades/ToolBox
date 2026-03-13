@@ -10,7 +10,7 @@
       class="w-3.5 h-3.5 rounded accent-primary"
       @change="(e) => emit('update:modelValue', e.target.checked)"
     />
-    <span class="text-sm text-text-main">{{ label }}</span>
+    <span class="text-sm text-text-main dark:text-gray-100">{{ label }}</span>
   </label>
 </template>
 

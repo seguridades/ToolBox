@@ -1,8 +1,8 @@
 <template>
-  <aside class="bg-bg-soft rounded-2xl p-4 space-y-5 text-sm">
+  <aside class="bg-bg-soft dark:bg-gray-800 rounded-2xl p-4 space-y-5 text-sm">
     <!-- Encabezado + reset -->
     <div class="flex items-center justify-between">
-      <span class="font-semibold text-text-main">Filtros</span>
+      <span class="font-semibold text-text-main dark:text-gray-100">Filtros</span>
       <button
         v-if="hasActiveFilters"
         class="text-xs text-primary hover:underline"
@@ -37,7 +37,7 @@
     <!-- Categoría -->
     <FilterGroup label="Categoría">
       <FilterCheckbox
-        v-for="cat in categories"
+        v-for="cat in catStore.names"
         :key="cat"
         v-model="store.filters.categories"
         :value="cat"
@@ -76,19 +76,22 @@
           class="w-3.5 h-3.5 rounded accent-primary"
           @change="(e) => store.filters.isOpensource = e.target.checked ? true : null"
         />
-        <span class="text-text-main">Solo código abierto</span>
+        <span class="text-text-main dark:text-gray-100">Solo código abierto</span>
       </label>
     </FilterGroup>
   </aside>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useResourcesStore } from '../stores/resources'
+import { useCategoriesStore } from '../stores/categories'
 import FilterGroup from './FilterGroup.vue'
 import FilterCheckbox from './FilterCheckbox.vue'
 
-const store = useResourcesStore()
+const store    = useResourcesStore()
+const catStore = useCategoriesStore()
+onMounted(() => catStore.fetchAll())
 
 const hasActiveFilters = computed(() => {
   const f = store.filters
@@ -131,18 +134,4 @@ const platformOptions = [
   { value: 'mac',     label: 'Mac' },
 ]
 
-const categories = [
-  'Comunicación Segura',
-  'Gestión de Contraseñas',
-  'Anonimato y Navegación',
-  'Cifrado de Archivos y Dispositivos',
-  'Autenticación',
-  'Cobertura en Campo',
-  'Protocolos de Viaje',
-  'Autocuidado',
-  'Redes de Apoyo',
-  'Legislación y Derechos',
-  'Formación y Metodología',
-  'Otros',
-]
 </script>

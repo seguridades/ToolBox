@@ -4,11 +4,11 @@
       class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4"
       @click.self="$emit('close')"
     >
-      <div class="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-xl max-h-[92dvh] flex flex-col">
+      <div class="bg-white dark:bg-gray-900 w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-xl max-h-[92dvh] flex flex-col">
         <!-- Cabecera -->
-        <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
-          <h2 class="font-bold text-text-main">{{ isEditing ? 'Editar recurso' : 'Nuevo recurso' }}</h2>
-          <button class="text-text-meta hover:text-text-main" @click="$emit('close')">
+        <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+          <h2 class="font-bold text-text-main dark:text-gray-100">{{ isEditing ? 'Editar recurso' : 'Nuevo recurso' }}</h2>
+          <button class="text-text-meta dark:text-gray-400 hover:text-text-main dark:hover:text-gray-100" @click="$emit('close')">
             <X class="w-5 h-5" />
           </button>
         </div>
@@ -26,7 +26,7 @@
             <div class="flex gap-2">
               <label v-for="t in typeOptions" :key="t.value"
                 class="flex-1 text-center text-xs font-medium py-2 rounded-xl border cursor-pointer transition-colors"
-                :class="form.type === t.value ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-text-meta hover:border-primary/40'"
+                :class="form.type === t.value ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 dark:border-gray-700 text-text-meta dark:text-gray-400 hover:border-primary/40'"
               >
                 <input type="radio" :value="t.value" v-model="form.type" class="sr-only" />
                 {{ t.label }}
@@ -48,8 +48,16 @@
           <Field label="Categoría *">
             <select v-model="form.category" required class="field-input">
               <option value="" disabled>Seleccioná una categoría</option>
-              <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+              <option value="__new__">+ Agregar nueva categoría</option>
+              <option v-for="cat in catStore.names" :key="cat" :value="cat">{{ cat }}</option>
             </select>
+            <input
+              v-if="form.category === '__new__'"
+              v-model="customCategory"
+              type="text"
+              placeholder="Nombre de la nueva categoría *"
+              class="field-input mt-2"
+            />
           </Field>
 
           <!-- Descripción -->
@@ -67,7 +75,7 @@
             <div class="flex gap-2">
               <label v-for="p in pricingOptions" :key="p.value"
                 class="flex-1 text-center text-xs font-medium py-2 rounded-xl border cursor-pointer transition-colors"
-                :class="form.pricing === p.value ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-text-meta hover:border-primary/40'"
+                :class="form.pricing === p.value ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 dark:border-gray-700 text-text-meta dark:text-gray-400 hover:border-primary/40'"
               >
                 <input type="radio" :value="p.value" v-model="form.pricing" class="sr-only" />
                 {{ p.label }}
@@ -110,9 +118,9 @@
           </div>
 
           <!-- Manuales de uso (solo si type = tool y estamos editando) -->
-          <div v-if="form.type === 'tool' && isEditing" class="space-y-3 pt-2 border-t border-gray-100">
+          <div v-if="form.type === 'tool' && isEditing" class="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
             <div class="flex items-center justify-between">
-              <p class="text-xs font-semibold uppercase tracking-wide text-text-meta">Manuales de uso</p>
+              <p class="text-xs font-semibold uppercase tracking-wide text-text-meta dark:text-gray-400">Manuales de uso</p>
               <button type="button" class="text-xs text-primary hover:underline flex items-center gap-1" @click="addingManual = true">
                 <Plus class="w-3.5 h-3.5" /> Agregar
               </button>
@@ -120,12 +128,12 @@
 
             <!-- Lista de manuales existentes -->
             <ul class="space-y-2">
-              <li v-for="m in manuals" :key="m.id" class="flex items-start justify-between gap-2 text-xs bg-bg-soft rounded-xl px-3 py-2">
+              <li v-for="m in manuals" :key="m.id" class="flex items-start justify-between gap-2 text-xs bg-bg-soft dark:bg-gray-800 rounded-xl px-3 py-2">
                 <div class="min-w-0">
-                  <p class="font-medium text-text-main truncate">{{ m.title }}</p>
-                  <p class="text-text-meta truncate">{{ m.source }} — {{ m.url }}</p>
+                  <p class="font-medium text-text-main dark:text-gray-100 truncate">{{ m.title }}</p>
+                  <p class="text-text-meta dark:text-gray-400 truncate">{{ m.source }} — {{ m.url }}</p>
                 </div>
-                <button type="button" class="text-text-meta hover:text-red-500 transition-colors shrink-0" @click="deleteManual(m)">
+                <button type="button" class="text-text-meta dark:text-gray-400 hover:text-red-500 transition-colors shrink-0" @click="deleteManual(m)">
                   <Trash2 class="w-3.5 h-3.5" />
                 </button>
               </li>
@@ -133,12 +141,12 @@
             </ul>
 
             <!-- Formulario inline para nuevo manual -->
-            <div v-if="addingManual" class="bg-bg-soft rounded-xl p-3 space-y-2">
+            <div v-if="addingManual" class="bg-bg-soft dark:bg-gray-800 rounded-xl p-3 space-y-2">
               <input v-model="newManual.title" type="text" placeholder="Título del manual *" class="field-input text-xs" />
               <input v-model="newManual.url"   type="url"  placeholder="URL *" class="field-input text-xs" />
               <input v-model="newManual.source" type="text" placeholder="Fuente (ej: EFF, Access Now)" class="field-input text-xs" />
               <div class="flex gap-2 justify-end">
-                <button type="button" class="text-xs text-text-meta hover:text-text-main" @click="addingManual = false">Cancelar</button>
+                <button type="button" class="text-xs text-text-meta dark:text-gray-400 hover:text-text-main dark:hover:text-gray-100" @click="addingManual = false">Cancelar</button>
                 <button type="button" class="text-xs font-medium text-primary hover:underline" @click="saveManual">Guardar manual</button>
               </div>
             </div>
@@ -148,8 +156,8 @@
         </form>
 
         <!-- Pie fijo -->
-        <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 shrink-0">
-          <button type="button" class="px-4 py-2 rounded-xl border border-gray-200 text-sm text-text-meta hover:border-gray-300" @click="$emit('close')">
+        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3 shrink-0">
+          <button type="button" class="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-text-meta dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500" @click="$emit('close')">
             Cancelar
           </button>
           <button
@@ -171,12 +179,19 @@ import { X, Plus, Trash2 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import Field from './FormField.vue'
 import Toggle from './FormToggle.vue'
+import { useScrollLock } from '../composables/useScrollLock'
+import { useCategoriesStore } from '../stores/categories'
+import { useAuthStore } from '../stores/auth'
 
 const props = defineProps({
   resource: { type: Object, default: null }, // null = crear, objeto = editar
 })
 
 const emit = defineEmits(['close', 'saved'])
+useScrollLock()
+
+const catStore = useCategoriesStore()
+const auth     = useAuthStore()
 
 const isEditing = computed(() => !!props.resource)
 
@@ -198,9 +213,10 @@ const form = reactive({
   show_audit:    props.resource?.show_audit    ?? false,
 })
 
-const tagsInput  = ref(props.resource?.tags?.join(', ') ?? '')
-const loading    = ref(false)
-const error      = ref(null)
+const tagsInput      = ref(props.resource?.tags?.join(', ') ?? '')
+const customCategory = ref('')
+const loading        = ref(false)
+const error          = ref(null)
 
 // Manuales
 const manuals     = ref([])
@@ -208,6 +224,7 @@ const addingManual = ref(false)
 const newManual   = reactive({ title: '', url: '', source: '' })
 
 onMounted(async () => {
+  catStore.fetchAll()
   if (!isEditing.value || props.resource.type !== 'tool') return
   const { data } = await supabase.from('tool_manuals').select('*').eq('tool_id', props.resource.id).order('created_at')
   manuals.value = data ?? []
@@ -234,19 +251,34 @@ async function deleteManual(manual) {
 }
 
 async function submit() {
-  if (!form.title || !form.type || !form.category || !form.scope.length) {
-    error.value = 'Completá los campos obligatorios: título, tipo, ámbito y categoría.'
+  const categoryValue = form.category === '__new__'
+    ? customCategory.value.trim()
+    : form.category
+
+  if (!form.title || !form.type || !categoryValue || !form.scope.length) {
+    error.value = form.category === '__new__' && !customCategory.value.trim()
+      ? 'Ingresá el nombre de la nueva categoría.'
+      : 'Completá los campos obligatorios: título, tipo, ámbito y categoría.'
     return
   }
   loading.value = true
   error.value   = null
 
+  // Si es categoría nueva, guardarla en el store (ignorar error de duplicado)
+  if (form.category === '__new__' && customCategory.value.trim()) {
+    await catStore.add(customCategory.value.trim())
+  }
+
+  const userEmail = auth.user?.email ?? null
   const payload = {
     ...form,
-    tags:      tagsInput.value.split(',').map((t) => t.trim()).filter(Boolean),
-    platforms: form.type === 'tool' ? form.platforms : null,
+    category:   categoryValue,
+    tags:       tagsInput.value.split(',').map((t) => t.trim()).filter(Boolean),
+    platforms:  form.type === 'tool' ? form.platforms : null,
     official_url: form.official_url || null,
     repo_url:     form.repo_url     || null,
+    updated_by: userEmail,
+    ...(!isEditing.value && { created_by: userEmail }),
   }
 
   const { error: err } = isEditing.value
@@ -268,16 +300,10 @@ const platformOptions = [
   { value: 'ios', label: 'iOS' }, { value: 'windows', label: 'Windows' },
   { value: 'linux', label: 'Linux' }, { value: 'mac', label: 'Mac' },
 ]
-const categories = [
-  'Comunicación Segura', 'Gestión de Contraseñas', 'Anonimato y Navegación',
-  'Cifrado de Archivos y Dispositivos', 'Autenticación', 'Cobertura en Campo',
-  'Protocolos de Viaje', 'Autocuidado', 'Redes de Apoyo',
-  'Legislación y Derechos', 'Formación y Metodología', 'Otros',
-]
 </script>
 
 <style scoped>
 .field-input {
-  @apply w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-text-main placeholder:text-text-meta focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
+  @apply w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-text-main dark:text-gray-100 placeholder:text-text-meta dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
 }
 </style>

@@ -6,7 +6,7 @@
       class="w-3.5 h-3.5 rounded accent-primary shrink-0"
       @change="toggle"
     />
-    <span class="text-text-main group-hover:text-primary transition-colors leading-none">
+    <span class="text-text-main dark:text-gray-300 group-hover:text-primary transition-colors leading-none">
       {{ label }}
     </span>
   </label>
@@ -18,9 +18,7 @@ const props = defineProps({
   value:      { type: String, required: true },
   label:      { type: String, required: true },
 })
-
 const emit = defineEmits(['update:modelValue'])
-
 function toggle() {
   const next = props.modelValue.includes(props.value)
     ? props.modelValue.filter((v) => v !== props.value)

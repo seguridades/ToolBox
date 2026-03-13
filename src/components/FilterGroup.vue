@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-2">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-meta">{{ label }}</p>
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-meta dark:text-gray-500">{{ label }}</p>
     <div class="space-y-1.5">
       <slot />
     </div>
