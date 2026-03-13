@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Project files
+Inspiration Desing.png
+toolbox-seguridades-spec.md
