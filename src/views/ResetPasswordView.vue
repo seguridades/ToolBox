@@ -18,8 +18,12 @@
       <!-- Formulario nueva contraseña -->
       <template v-else>
         <div>
-          <h2 class="font-bold text-text-main dark:text-gray-100 text-base">Nueva contraseña</h2>
-          <p class="text-xs text-text-meta dark:text-gray-400 mt-0.5">Ingresá tu nueva contraseña para continuar.</p>
+          <h2 class="font-bold text-text-main dark:text-gray-100 text-base">
+            {{ isInvite ? 'Crear contraseña' : 'Nueva contraseña' }}
+          </h2>
+          <p class="text-xs text-text-meta dark:text-gray-400 mt-0.5">
+            {{ isInvite ? 'Establecé tu contraseña para activar tu cuenta.' : 'Ingresá tu nueva contraseña para continuar.' }}
+          </p>
         </div>
 
         <form class="space-y-4" @submit.prevent="submit">
@@ -47,14 +51,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { useHead } from '../composables/useHead'
 
-useHead({ title: 'Nueva contraseña' })
-
+const route    = useRoute()
 const router   = useRouter()
+const isInvite = computed(() => route.query.invite === '1')
+
+useHead({ title: computed(() => isInvite.value ? 'Crear contraseña' : 'Nueva contraseña') })
+
 const password = ref('')
 const confirm  = ref('')
 const loading  = ref(false)
@@ -63,13 +70,20 @@ const success  = ref(null)
 const ready    = ref(false)
 const expired  = ref(false)
 
-onMounted(() => {
-  const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+onMounted(async () => {
+  // Invite flow: Supabase ya procesó el hash y tiene sesión activa
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session) {
+    ready.value = true
+    return
+  }
+
+  // Recovery flow: esperar evento PASSWORD_RECOVERY
+  supabase.auth.onAuthStateChange((event) => {
     if (event === 'PASSWORD_RECOVERY') {
       ready.value = true
     }
   })
-  // Si después de 5s no llegó el evento, el enlace no era válido
   setTimeout(() => { if (!ready.value) expired.value = true }, 5000)
 })
 
