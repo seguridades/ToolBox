@@ -265,6 +265,60 @@
         </table>
       </div>
     </div>
+    <!-- Tab: Usuarios (solo admin) -->
+    <div v-if="activeTab === 'users'" class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="font-bold text-text-main dark:text-gray-100">Usuarios</h2>
+        <button
+          class="flex items-center gap-1.5 text-xs text-primary hover:underline"
+          @click="loadUsers"
+        >
+          <RotateCw class="w-3.5 h-3.5" /> Actualizar
+        </button>
+      </div>
+
+      <div v-if="loadingUsers" class="space-y-2">
+        <div v-for="n in 3" :key="n" class="h-14 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />
+      </div>
+
+      <div v-else class="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-800">
+        <table class="w-full text-sm">
+          <thead class="bg-bg-soft dark:bg-gray-800 text-text-meta dark:text-gray-400 text-xs uppercase tracking-wide">
+            <tr>
+              <th class="text-left px-4 py-3 font-medium">Email</th>
+              <th class="text-left px-4 py-3 font-medium">Último acceso</th>
+              <th class="text-left px-4 py-3 font-medium">Rol</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
+            <tr v-if="!users.length">
+              <td colspan="3" class="px-4 py-8 text-center text-text-meta dark:text-gray-400 text-xs">Sin usuarios</td>
+            </tr>
+            <tr
+              v-for="u in users"
+              :key="u.id"
+              class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              <td class="px-4 py-3 text-text-main dark:text-gray-100">{{ u.email }}</td>
+              <td class="px-4 py-3 text-text-meta dark:text-gray-400 text-xs">
+                {{ u.last_sign_in_at ? formatDate(u.last_sign_in_at) : 'Nunca' }}
+              </td>
+              <td class="px-4 py-3">
+                <select
+                  :value="u.role"
+                  class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1 text-xs text-text-main dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  @change="setUserRole(u, $event.target.value || null)"
+                >
+                  <option v-for="opt in roleOptions" :key="String(opt.value)" :value="opt.value ?? ''">
+                    {{ opt.label }}
+                  </option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- Modal formulario -->
@@ -295,7 +349,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { Plus, Search, Pencil, Trash2, Info, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-vue-next'
+import { Plus, Search, Pencil, Trash2, Info, ChevronUp, ChevronDown, ChevronsUpDown, RotateCw } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/auth'
 import ResourceForm from '../components/ResourceForm.vue'
@@ -313,6 +367,7 @@ const allTabs = [
   { id: 'resources',  label: 'Recursos',    roles: ['editor', 'admin'] },
   { id: 'categories', label: 'Categorías',  roles: ['admin'] },
   { id: 'feedback',   label: 'Feedback',    roles: ['admin'] },
+  { id: 'users',      label: 'Usuarios',    roles: ['admin'] },
 ]
 const visibleTabs = computed(() => allTabs.filter((t) => t.roles.includes(auth.role)))
 const activeTab   = ref('resources')
@@ -448,6 +503,35 @@ async function doDeleteCat() {
   await catStore.remove(deleteCatTarget.value.id)
   deleteCatTarget.value = null
 }
+
+// --- Usuarios ---
+const users        = ref([])
+const loadingUsers = ref(false)
+const roleOptions  = [
+  { value: null,    label: 'Sin rol' },
+  { value: 'editor', label: 'Editor' },
+  { value: 'admin',  label: 'Admin' },
+]
+
+async function loadUsers() {
+  loadingUsers.value = true
+  const { data, error } = await supabase.functions.invoke('admin-users', {
+    body: { action: 'list' },
+  })
+  if (!error) users.value = data
+  loadingUsers.value = false
+}
+
+async function setUserRole(user, role) {
+  const prev = user.role
+  user.role = role // optimista
+  const { error } = await supabase.functions.invoke('admin-users', {
+    body: { action: 'setRole', userId: user.id, role },
+  })
+  if (error) user.role = prev
+}
+
+watch(activeTab, (tab) => { if (tab === 'users') loadUsers() })
 
 async function resolveFeedback(fb) {
   await supabase.from('resource_feedback').update({ status: 'resuelto' }).eq('id', fb.id)
