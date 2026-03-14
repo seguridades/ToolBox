@@ -513,21 +513,25 @@ const roleOptions  = [
   { value: 'admin',  label: 'Admin' },
 ]
 
+async function invokeAdminUsers(body) {
+  const { data: { session } } = await supabase.auth.getSession()
+  return supabase.functions.invoke('admin-users', {
+    body,
+    headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+  })
+}
+
 async function loadUsers() {
   loadingUsers.value = true
-  const { data, error } = await supabase.functions.invoke('admin-users', {
-    body: { action: 'list' },
-  })
+  const { data, error } = await invokeAdminUsers({ action: 'list' })
   if (!error) users.value = data
   loadingUsers.value = false
 }
 
 async function setUserRole(user, role) {
   const prev = user.role
-  user.role = role // optimista
-  const { error } = await supabase.functions.invoke('admin-users', {
-    body: { action: 'setRole', userId: user.id, role },
-  })
+  user.role = role
+  const { error } = await invokeAdminUsers({ action: 'setRole', userId: user.id, role })
   if (error) user.role = prev
 }
 
