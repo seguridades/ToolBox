@@ -27,8 +27,11 @@ const router = useRouter()
 useTheme()
 
 onMounted(() => {
-  if (window.location.hash.includes('type=invite')) {
+  const hash = window.location.hash
+  if (hash.includes('type=invite')) {
     router.replace('/reset-password?invite=1')
+  } else if (hash.includes('error=')) {
+    router.replace('/reset-password?error=1')
   }
 })
 </script>

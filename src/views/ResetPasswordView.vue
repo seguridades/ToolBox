@@ -71,6 +71,12 @@ const ready    = ref(false)
 const expired  = ref(false)
 
 onMounted(async () => {
+  // Error en el hash (token expirado o inválido)
+  if (route.query.error) {
+    expired.value = true
+    return
+  }
+
   // Invite flow: Supabase ya procesó el hash y tiene sesión activa
   const { data: { session } } = await supabase.auth.getSession()
   if (session) {
