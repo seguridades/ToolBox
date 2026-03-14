@@ -22,15 +22,17 @@ import MaletaDrawer from './components/MaletaDrawer.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import { useTheme } from './composables/useTheme'
 
+// Capturar el hash ANTES de que Supabase lo borre (ocurre async durante initialize())
+const _initialHash = window.location.hash
+
 const maletaOpen = ref(false)
 const router = useRouter()
 useTheme()
 
 onMounted(() => {
-  const hash = window.location.hash
-  if (hash.includes('type=invite')) {
+  if (_initialHash.includes('type=invite')) {
     router.replace('/reset-password?invite=1')
-  } else if (hash.includes('error=')) {
+  } else if (_initialHash.includes('error=')) {
     router.replace('/reset-password?error=1')
   }
 })
