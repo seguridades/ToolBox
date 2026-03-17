@@ -217,7 +217,7 @@ async function copyLink() {
 
 const typeLabel    = computed(() => ({ tool: 'Herramienta', guide: 'Guía', resource: 'Recurso' }[resource.value?.type]))
 const pricingLabel = computed(() => ({ gratis: 'Gratis', pago: 'Pago', freemium: 'Freemium' }[resource.value?.pricing]))
-const scopeLabel   = { digital: 'Digital', 'física': 'Física', otra: 'Otra', mixta: 'Mixta' }
+const scopeLabel   = { digital: 'Digital', 'física': 'Física', otra: 'Otra', integral: 'Integral' }
 
 const typeBadgeClass = computed(() => {
   const base = 'text-xs font-semibold px-2 py-0.5 rounded-full'

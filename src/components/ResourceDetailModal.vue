@@ -199,7 +199,7 @@ onMounted(async () => {
 const typeLabel = computed(() => ({ tool: 'Herramienta', guide: 'Guía', resource: 'Recurso' }[props.resource.type]))
 const pricingLabel = computed(() => ({ gratis: 'Gratis', pago: 'Pago', freemium: 'Freemium' }[props.resource.pricing]))
 
-const scopeLabel = { digital: 'Digital', 'física': 'Física', otra: 'Otra', mixta: 'Mixta' }
+const scopeLabel = { digital: 'Digital', 'física': 'Física', otra: 'Otra', integral: 'Integral' }
 
 const typeBadgeClass = computed(() => {
   const base = 'text-xs font-semibold px-2 py-0.5 rounded-full'

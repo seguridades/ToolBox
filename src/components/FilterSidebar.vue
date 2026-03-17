@@ -116,7 +116,7 @@ const scopeOptions = [
   { value: 'digital', label: 'Digital' },
   { value: 'física',  label: 'Física' },
   { value: 'otra',    label: 'Otra' },
-  { value: 'mixta',   label: 'Mixta' },
+  { value: 'integral', label: 'Integral' },
 ]
 
 const pricingOptions = [

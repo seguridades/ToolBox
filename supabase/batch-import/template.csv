@@ -7,9 +7,9 @@ VeraCrypt,tool,digital,"windows,linux,mac",true,gratis,https://veracrypt.fr,http
 Aegis Authenticator,tool,digital,android,true,gratis,https://getaegis.app,https://github.com/beemdevelopment/Aegis,true,true,false,false
 ProtonMail,tool,digital,"web,android,ios",false,freemium,https://proton.me/mail,,true,true,false,false
 Guía de seguridad digital para periodistas — EFF,guide,digital,,true,gratis,https://ssd.eff.org/es,,true,true,false,false
-Manual de cobertura en situaciones de riesgo — Art19,guide,"física,mixta",,false,gratis,https://www.article19.org,,true,true,false,false
-Guía de seguridad para defensoras de derechos humanos — Front Line Defenders,guide,"digital,física,mixta",,false,gratis,https://www.frontlinedefenders.org,,true,true,false,false
-Protocolo de protección para viajes de alto riesgo,guide,"digital,física,mixta",,false,gratis,,,false,false,false,false
+Manual de cobertura en situaciones de riesgo — Art19,guide,"física,integral",,false,gratis,https://www.article19.org,,true,true,false,false
+Guía de seguridad para defensoras de derechos humanos — Front Line Defenders,guide,"digital,física,integral",,false,gratis,https://www.frontlinedefenders.org,,true,true,false,false
+Protocolo de protección para viajes de alto riesgo,guide,"digital,física,integral",,false,gratis,,,false,false,false,false
 Directorio de organizaciones de ayuda legal para periodistas — IFEX,resource,otra,,false,gratis,https://ifex.org,,true,true,false,false
 Security in a Box — Frontline Defenders & Tactical Tech,resource,digital,,false,gratis,https://securityinabox.org/es,,true,true,false,false
 Repositorio de legislación de vigilancia — Access Now,resource,"otra,digital",,false,gratis,https://www.accessnow.org,,false,false,false,false

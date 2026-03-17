@@ -4,7 +4,7 @@
 
 ## Qué hacemos
 
-Mapeamos, revisamos y organizamos herramientas, guías y recursos relacionados con seguridad digital, física y mixta. Cada recurso en el directorio fue evaluado por nuestro equipo antes de ser publicado.
+Mapeamos, revisamos y organizamos herramientas, guías y recursos relacionados con seguridad digital, física e integral. Cada recurso en el directorio fue evaluado por nuestro equipo antes de ser publicado.
 
 ## Para quién
 

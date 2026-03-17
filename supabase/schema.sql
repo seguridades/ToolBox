@@ -8,7 +8,7 @@
 -- -------------------------------------------------------
 
 create type resource_type as enum ('tool', 'guide', 'resource');
-create type resource_scope as enum ('digital', 'física', 'otra', 'mixta');
+create type resource_scope as enum ('digital', 'física', 'otra', 'integral');
 create type resource_pricing as enum ('gratis', 'pago', 'freemium');
 create type resource_platform as enum ('web', 'android', 'ios', 'windows', 'linux', 'mac');
 create type feedback_type as enum ('reporte', 'comentario');

@@ -117,8 +117,8 @@
             <Toggle v-model="form.show_audit"    label="Mostrar auditoría" :disabled="!form.has_audit" />
           </div>
 
-          <!-- Manuales de uso (solo si type = tool y estamos editando) -->
-          <div v-if="form.type === 'tool' && isEditing" class="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+          <!-- Manuales de uso (solo si type = tool) -->
+          <div v-if="form.type === 'tool'" class="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
             <div class="flex items-center justify-between">
               <p class="text-xs font-semibold uppercase tracking-wide text-text-meta dark:text-gray-400">Manuales de uso</p>
               <button type="button" class="text-xs text-primary hover:underline flex items-center gap-1" @click="addingManual = true">
@@ -126,18 +126,22 @@
               </button>
             </div>
 
-            <!-- Lista de manuales existentes -->
+            <!-- Lista de manuales -->
             <ul class="space-y-2">
-              <li v-for="m in manuals" :key="m.id" class="flex items-start justify-between gap-2 text-xs bg-bg-soft dark:bg-gray-800 rounded-xl px-3 py-2">
+              <li
+                v-for="(m, i) in allManuals"
+                :key="m.id ?? i"
+                class="flex items-start justify-between gap-2 text-xs bg-bg-soft dark:bg-gray-800 rounded-xl px-3 py-2"
+              >
                 <div class="min-w-0">
                   <p class="font-medium text-text-main dark:text-gray-100 truncate">{{ m.title }}</p>
                   <p class="text-text-meta dark:text-gray-400 truncate">{{ m.source }} — {{ m.url }}</p>
                 </div>
-                <button type="button" class="text-text-meta dark:text-gray-400 hover:text-red-500 transition-colors shrink-0" @click="deleteManual(m)">
+                <button type="button" class="text-text-meta dark:text-gray-400 hover:text-red-500 transition-colors shrink-0" @click="removeManual(m, i)">
                   <Trash2 class="w-3.5 h-3.5" />
                 </button>
               </li>
-              <li v-if="!manuals.length" class="text-xs text-text-meta">Sin manuales todavía.</li>
+              <li v-if="!allManuals.length" class="text-xs text-text-meta">Sin manuales todavía.</li>
             </ul>
 
             <!-- Formulario inline para nuevo manual -->
@@ -218,10 +222,15 @@ const customCategory = ref('')
 const loading        = ref(false)
 const error          = ref(null)
 
-// Manuales
-const manuals     = ref([])
-const addingManual = ref(false)
-const newManual   = reactive({ title: '', url: '', source: '' })
+// Manuales guardados en DB (solo al editar)
+const manuals        = ref([])
+// Manuales pendientes (solo al crear, aún sin tool_id)
+const pendingManuals = ref([])
+const addingManual   = ref(false)
+const newManual      = reactive({ title: '', url: '', source: '' })
+
+// Lista unificada para mostrar en UI
+const allManuals = computed(() => [...manuals.value, ...pendingManuals.value])
 
 onMounted(async () => {
   catStore.fetchAll()
@@ -232,22 +241,32 @@ onMounted(async () => {
 
 async function saveManual() {
   if (!newManual.title || !newManual.url) return
-  const { data, error: err } = await supabase.from('tool_manuals').insert({
-    tool_id: props.resource.id,
-    title:   newManual.title.trim(),
-    url:     newManual.url.trim(),
-    source:  newManual.source.trim() || null,
-  }).select().single()
-  if (!err) {
-    manuals.value.push(data)
-    Object.assign(newManual, { title: '', url: '', source: '' })
-    addingManual.value = false
+  if (isEditing.value) {
+    const { data, error: err } = await supabase.from('tool_manuals').insert({
+      tool_id: props.resource.id,
+      title:   newManual.title.trim(),
+      url:     newManual.url.trim(),
+      source:  newManual.source.trim() || null,
+    }).select().single()
+    if (!err) manuals.value.push(data)
+  } else {
+    pendingManuals.value.push({
+      title:  newManual.title.trim(),
+      url:    newManual.url.trim(),
+      source: newManual.source.trim() || null,
+    })
   }
+  Object.assign(newManual, { title: '', url: '', source: '' })
+  addingManual.value = false
 }
 
-async function deleteManual(manual) {
-  await supabase.from('tool_manuals').delete().eq('id', manual.id)
-  manuals.value = manuals.value.filter((m) => m.id !== manual.id)
+async function removeManual(manual, index) {
+  if (manual.id) {
+    await supabase.from('tool_manuals').delete().eq('id', manual.id)
+    manuals.value = manuals.value.filter((m) => m.id !== manual.id)
+  } else {
+    pendingManuals.value.splice(index - manuals.value.length, 1)
+  }
 }
 
 async function submit() {
@@ -281,19 +300,27 @@ async function submit() {
     ...(!isEditing.value && { created_by: userEmail }),
   }
 
-  const { error: err } = isEditing.value
-    ? await supabase.from('resources').update(payload).eq('id', props.resource.id)
-    : await supabase.from('resources').insert(payload)
+  if (isEditing.value) {
+    const { error: err } = await supabase.from('resources').update(payload).eq('id', props.resource.id)
+    if (err) { error.value = err.message; loading.value = false; return }
+  } else {
+    const { data: created, error: err } = await supabase.from('resources').insert(payload).select('id').single()
+    if (err) { error.value = err.message; loading.value = false; return }
+    if (pendingManuals.value.length) {
+      await supabase.from('tool_manuals').insert(
+        pendingManuals.value.map((m) => ({ ...m, tool_id: created.id }))
+      )
+    }
+  }
 
-  if (err) error.value = err.message
-  else emit('saved')
+  emit('saved')
 
   loading.value = false
 }
 
 // Opciones
 const typeOptions    = [{ value: 'tool', label: 'Herramienta' }, { value: 'guide', label: 'Guía' }, { value: 'resource', label: 'Recurso' }]
-const scopeOptions   = [{ value: 'digital', label: 'Digital' }, { value: 'física', label: 'Física' }, { value: 'otra', label: 'Otra' }, { value: 'mixta', label: 'Mixta' }]
+const scopeOptions   = [{ value: 'digital', label: 'Digital' }, { value: 'física', label: 'Física' }, { value: 'otra', label: 'Otra' }, { value: 'integral', label: 'Integral' }]
 const pricingOptions = [{ value: 'gratis', label: 'Gratis' }, { value: 'freemium', label: 'Freemium' }, { value: 'pago', label: 'Pago' }]
 const platformOptions = [
   { value: 'web', label: 'Web' }, { value: 'android', label: 'Android' },

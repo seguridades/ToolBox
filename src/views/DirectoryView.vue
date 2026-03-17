@@ -195,7 +195,7 @@ const activeFilterCount = computed(() => {
 })
 
 const TYPE_LABELS     = { tool: 'Herramienta', guide: 'Guía', resource: 'Recurso' }
-const SCOPE_LABELS    = { digital: 'Digital', física: 'Física', otra: 'Otra', mixta: 'Mixta' }
+const SCOPE_LABELS    = { digital: 'Digital', física: 'Física', otra: 'Otra', integral: 'Integral' }
 const PRICING_LABELS  = { gratis: 'Gratis', freemium: 'Freemium', pago: 'Pago' }
 const PLATFORM_LABELS = { web: 'Web', android: 'Android', ios: 'iOS', windows: 'Windows', linux: 'Linux', mac: 'Mac' }
 

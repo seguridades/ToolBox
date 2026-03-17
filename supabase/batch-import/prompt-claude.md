@@ -57,7 +57,7 @@ Herramientas a completar:
 | Campo | Valores posibles |
 |-------|-----------------|
 | `type` | `tool` · `guide` · `resource` |
-| `scope` | `digital` · `física` · `mixta` · `otra` |
+| `scope` | `digital` · `física` · `integral` · `otra` |
 | `platforms` | `web` · `android` · `ios` · `windows` · `linux` · `mac` |
 | `pricing` | `gratis` · `pago` · `freemium` |
 | `is_reviewed / show_review` | `true` · `false` — si no revisaste la herramienta, ambos en `false` |

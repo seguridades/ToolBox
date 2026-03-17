@@ -1,7 +1,7 @@
 import { watchEffect, isRef, onUnmounted } from 'vue'
 
 const SITE_NAME   = 'ToolBox — seguridades.org'
-const DEFAULT_DESC = 'Directorio de recursos de seguridad digital, física y mixta curado por seguridades.org.'
+const DEFAULT_DESC = 'Directorio de recursos de seguridad digital, física e integral curado por seguridades.org.'
 
 function setMeta(name, content) {
   let el = document.querySelector(`meta[name="${name}"]`)

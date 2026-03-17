@@ -12,7 +12,7 @@ export const useResourcesStore = defineStore('resources', () => {
   const filters = ref({
     search: '',
     types: [],        // 'tool' | 'guide' | 'resource'
-    scopes: [],       // 'digital' | 'física' | 'otra' | 'mixta'
+    scopes: [],       // 'digital' | 'física' | 'otra' | 'integral'
     categories: [],   // enum de categorías
     tags: [],
     platforms: [],    // solo relevante si type = tool
