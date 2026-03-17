@@ -5,7 +5,7 @@
       <RouterLink to="/" class="flex items-center gap-2 shrink-0">
         <Wrench class="w-5 h-5 text-primary" />
         <span class="font-bold text-text-main dark:text-gray-100 text-sm">
-          Tool<span class="text-primary">Box</span><span class="text-text-meta dark:text-gray-400 font-normal"> — seguridades.org</span>
+          Tool<span class="text-primary">Box</span><span class="text-text-meta dark:text-gray-400 font-normal"> - seguridades.org</span>
         </span>
       </RouterLink>
 
