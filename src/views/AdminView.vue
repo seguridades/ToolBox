@@ -86,7 +86,17 @@
               :key="r.id"
               class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
-              <td class="px-4 py-3 font-medium text-text-main dark:text-gray-100">{{ r.title }}</td>
+              <td class="px-4 py-3 font-medium text-text-main dark:text-gray-100">
+                <div class="flex items-center gap-1.5">
+                  {{ r.title }}
+                  <div v-if="!r.is_reviewed" class="group relative inline-flex shrink-0">
+                    <AlertCircle class="w-3.5 h-3.5 text-amber-400" />
+                    <span class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded-lg bg-gray-900 dark:bg-gray-700 text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                      Sin revisar
+                    </span>
+                  </div>
+                </div>
+              </td>
               <td class="px-4 py-3">
                 <span :class="typeBadge(r.type)">{{ typeLabel[r.type] }}</span>
               </td>
@@ -349,7 +359,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { Plus, Search, Pencil, Trash2, Info, ChevronUp, ChevronDown, ChevronsUpDown, RotateCw } from 'lucide-vue-next'
+import { Plus, Search, Pencil, Trash2, Info, ChevronUp, ChevronDown, ChevronsUpDown, RotateCw, AlertCircle } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/auth'
 import ResourceForm from '../components/ResourceForm.vue'

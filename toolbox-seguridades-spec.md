@@ -2,8 +2,9 @@
 
 # Toolbox de seguridades.org
 
-> Versión 0.2 — En definición  
+> Versión 1.0 — Implementado y en producción
 > Proyecto interno seguridades.org
+> Producción: https://toolbox-seguridades.vercel.app
 
 ---
 
@@ -20,7 +21,7 @@
 | Frontend      | Vue.js 3 (Composition API) + Vite           |
 | Backend       | Supabase (Auth, PostgreSQL, Edge Functions) |
 | Estilos       | Tailwind CSS                                |
-| Estado Global | Pinia (persistencia de Maleta de Taller)    |
+| Estado Global | Pinia (auth, resources, maleta, categories) |
 | Iconografía   | Lucide Vue Next                             |
 | Hosting       | Vercel                                      |
 
@@ -44,6 +45,7 @@
 - `rounded-2xl` (16px) para tarjetas y botones
 - `shadow-sm` base → `shadow-md` en hover
 - Contenedor máximo `max-w-7xl` con paddings laterales responsivos
+- Dark mode implementado vía `useTheme` composable
 
 ---
 
@@ -60,7 +62,7 @@
 | `type`          | Enum         | `tool \| guide \| resource`                                                         |
 | `scope`         | Array        | `digital \| física \| otra \| mixta` (múltiple)                                     |
 | `category`      | Enum         | Categoría unificada de navegación (ver sección 4.4)                                 |
-| `tags`          | Array (text) | Etiquetas libres, múltiples (ej: `#Android`, `#SinInternet`)                        |
+| `tags`          | Array (text) | Etiquetas libres, múltiples (ej: `Android`, `SinInternet`)                          |
 | `platforms`     | Array        | `web \| android \| ios \| windows \| linux \| mac` — nullable, solo aplica a `tool` |
 | `is_opensource` | Boolean      | ¿Código abierto?                                                                    |
 | `pricing`       | Enum         | `gratis \| pago \| freemium`                                                        |
@@ -72,7 +74,7 @@
 | `repo_url`      | URL          | Repositorio GitHub/GitLab (opcional)                                                |
 | `author_id`     | UUID         | FK a `users` — solo uso interno, no se muestra públicamente                         |
 | `created_at`    | Timestamp    | Fecha de carga                                                                      |
-| `updated_at`    | Timestamp    | Última actualización                                                                |
+| `updated_at`    | Timestamp    | Última actualización (trigger automático)                                           |
 
 > **Nota:** `platforms` se muestra en UI solo cuando `type = tool`. En los otros tipos el campo queda nullable y oculto.
 
@@ -115,8 +117,6 @@ Manuales de uso asociados a una herramienta específica (ej: guía de EFF para S
 
 Lista unificada para los tres tipos de recursos. Una categoría por recurso.
 
-> v0.2 — Lista inicial, sujeta a ampliación según necesidades del equipo.
-
 1. Comunicación Segura
 2. Gestión de Contraseñas
 3. Anonimato y Navegación
@@ -150,7 +150,18 @@ Lista unificada para los tres tipos de recursos. Una categoría por recurso.
 | **Editor**  | Cargar y editar recursos, gestionar `tool_manuals`                 |
 | **Admin**   | Todo lo anterior + aprobar cuentas de editores, gestionar feedback |
 
-Acceso restringido vía Supabase Auth. Aprobación de cuentas de editores manual por admin.
+### Implementación Auth
+
+- Roles almacenados en `app_metadata`: `{ "role": "editor" | "admin" }`
+- Patrón RLS: `auth.jwt() -> 'app_metadata' ->> 'role'` (**no** `auth.jwt() ->> 'role'`)
+- Edge Function `admin-users` deployada para gestión de roles — **Verify JWT debe estar OFF**
+- Supabase Project ID: `uwdztnoziwktwxnyhrmc`
+
+### Flujos de email implementados
+
+- **Invitación:** admin invita usuario desde `/admin`, Supabase envía email con magic link
+- **Reset de contraseña:** flujo manejado en `/reset-password` (`ResetPasswordView.vue`)
+- Ambos flujos capturan el token desde el hash de la URL en `App.vue`
 
 ---
 
@@ -169,15 +180,16 @@ Filtrado combinable por:
 - Pricing (`gratis | pago | freemium`)
 - `is_opensource`
 
-Implementación mediante `computed properties` en Vue para respuesta instantánea sin recarga.
+Implementación mediante `computed properties` en Vue + store `resources.js`. Los filtros en mobile se muestran en `FilterDrawer.vue` (drawer deslizable).
 
 ### 7.2. Maleta de Taller
 
 Selección de recursos para exportar como lista de referencia para talleres.
 
-- Persistencia en Pinia (estado global)
+- Persistencia en Pinia store (`maleta.js`)
 - Campos exportados: `title | official_url | repo_url | pricing | is_opensource | platforms`
-- Formatos de exportación: PDF y Excel
+- En desktop: panel lateral. En mobile: drawer (`MaletaDrawer.vue`)
+- Formatos de exportación: PDF y Excel (composable `useExport.js`)
 
 ### 7.3. Feedback Público
 
@@ -186,23 +198,77 @@ Selección de recursos para exportar como lista de referencia para talleres.
 - Campos opcionales: alias, email
 - Estados: `pendiente | resuelto` (gestionado por admin)
 
+### 7.4. Panel Admin (`/admin`)
+
+- Gestión de recursos: crear, editar, eliminar (con `ConfirmDialog`)
+- Gestión de usuarios: invitar editores, cambiar roles, deshabilitar cuentas
+- Gestión de feedback: ver reportes, marcar como resuelto
+- Acceso restringido a roles `editor` y `admin`
+
+### 7.5. Dark Mode
+
+Implementado vía composable `useTheme.js`. Toggle en `TheHeader.vue`. Persiste entre sesiones.
+
 ---
 
 ## 8. ESTRUCTURA DE COMPONENTES (VUE)
 
-| Componente          | Descripción                                                          |
-| ------------------- | -------------------------------------------------------------------- |
-| `ToolCard.vue`      | Tarjeta de recurso con badges de ámbito, tipo, pricing y plataformas |
-| `FilterSidebar.vue` | Panel lateral con filtros reactivos por checkboxes                   |
-| `FeedbackModal.vue` | Modal flotante para reportes y comentarios                           |
-| `MaletaTaller.vue`  | Panel de selección y exportación de recursos                         |
-| `TheFooter.vue`     | Footer con enlaces a páginas estáticas                               |
+### Vistas
 
-### 8.1. Estrategia de Iconografía
+| Vista                 | Ruta              | Descripción                                    |
+| --------------------- | ----------------- | ---------------------------------------------- |
+| `HomeView.vue`        | `/`               | Landing / página de inicio                     |
+| `DirectoryView.vue`   | `/directorio`     | Directorio principal con filtros                |
+| `ResourceDetailView.vue` | `/directorio/:id` | Vista detalle de un recurso                 |
+| `AdminView.vue`       | `/admin`          | Panel de administración                        |
+| `ResetPasswordView.vue` | `/reset-password` | Formulario de nueva contraseña              |
+| `StaticPageView.vue`  | `/pages/:slug`    | Páginas estáticas desde Markdown               |
 
-- **Lucide Vue Next** para UI funcional: botones, estados, acciones, metadatos.
-- **3 ilustraciones flat** (estilo consistente con referencia visual) para identificar los tipos: `tool`, `guide`, `resource`.
-- **Badges de color** por categoría para diferenciación visual rápida en tarjetas.
+### Componentes
+
+| Componente             | Descripción                                                          |
+| ---------------------- | -------------------------------------------------------------------- |
+| `TheHeader.vue`        | Navegación principal, toggle dark mode, login                        |
+| `TheFooter.vue`        | Footer con enlaces a páginas estáticas                               |
+| `ToolCard.vue`         | Tarjeta de recurso con badges de ámbito, tipo, pricing y plataformas |
+| `ResourceDetailModal.vue` | Modal de detalle (alternativa al full view en algunos contextos)  |
+| `FilterSidebar.vue`    | Panel lateral con filtros reactivos (desktop)                        |
+| `FilterDrawer.vue`     | Drawer de filtros para mobile                                        |
+| `FilterGroup.vue`      | Grupo de filtros reutilizable                                        |
+| `FilterCheckbox.vue`   | Checkbox de filtro individual                                        |
+| `MaletaDrawer.vue`     | Panel/drawer de Maleta de Taller                                     |
+| `FeedbackModal.vue`    | Modal flotante para reportes y comentarios                           |
+| `LoginModal.vue`       | Modal de login con Supabase Auth                                     |
+| `ResourceForm.vue`     | Formulario de alta/edición de recursos (admin)                       |
+| `ConfirmDialog.vue`    | Dialog de confirmación para acciones destructivas                    |
+| `FormField.vue`        | Campo de formulario genérico reutilizable                            |
+| `FormToggle.vue`       | Toggle booleano para formularios                                     |
+| `ToastContainer.vue`   | Sistema de notificaciones toast                                      |
+
+### Stores (Pinia)
+
+| Store          | Responsabilidad                              |
+| -------------- | -------------------------------------------- |
+| `auth.js`      | Sesión, usuario, roles                       |
+| `resources.js` | Listado, filtros, CRUD de recursos           |
+| `maleta.js`    | Selección y exportación de Maleta de Taller  |
+| `categories.js`| Listado de categorías disponibles            |
+
+### Composables
+
+| Composable       | Responsabilidad                                 |
+| ---------------- | ----------------------------------------------- |
+| `useExport.js`   | Exportación a PDF y Excel                       |
+| `useHead.js`     | Gestión de `<title>` y meta tags por vista      |
+| `useScrollLock.js` | Bloqueo de scroll cuando hay modals abiertos  |
+| `useTheme.js`    | Toggle y persistencia de dark mode              |
+| `useToast.js`    | API para lanzar notificaciones toast            |
+
+### Edge Functions (Supabase)
+
+| Función        | Responsabilidad                                       |
+| -------------- | ----------------------------------------------------- |
+| `admin-users`  | Gestión de usuarios y roles (requiere Verify JWT OFF) |
 
 ---
 
@@ -240,31 +306,34 @@ Todo lo de la tarjeta más:
 
 ---
 
-## 11. RUTAS (VUE ROUTER)
+## 10. RUTAS (VUE ROUTER)
 
-| Ruta           | Descripción                                               | Acceso         |
-| -------------- | --------------------------------------------------------- | -------------- |
-| `/`            | Directorio principal                                      | Público        |
-| `/admin`       | Panel de control                                          | Admin / Editor |
-| `/pages/:slug` | Páginas estáticas (Acerca de, Principios, Cómo colaborar) | Público        |
+| Ruta              | Descripción                                               | Acceso         |
+| ----------------- | --------------------------------------------------------- | -------------- |
+| `/`               | Landing / página de inicio                                | Público        |
+| `/directorio`     | Directorio principal con filtros                          | Público        |
+| `/directorio/:id` | Vista detalle de recurso                                  | Público        |
+| `/admin`          | Panel de control                                          | Admin / Editor |
+| `/reset-password` | Formulario de nueva contraseña (flujo email)              | Público        |
+| `/pages/:slug`    | Páginas estáticas (Acerca de, Principios, Cómo colaborar) | Público        |
 
-> Las páginas estáticas (`/pages/:slug`) se gestionan como archivos Markdown en el repositorio, no desde Supabase.
+> Las páginas estáticas (`/pages/:slug`) se gestionan como archivos Markdown en `src/pages/`: `acerca-de.md`, `principios.md`, `como-colaborar.md`.
 
 ---
 
-## 12. FLUJO DE APROBACIÓN DE EDITORES
+## 11. FLUJO DE APROBACIÓN DE EDITORES
 
 Proceso manual, sin formulario ni automatización en v1:
 
 1. El aspirante contacta a seguridades.org por email solicitando acceso como editor.
-2. El admin crea la cuenta manualmente en Supabase y asigna el rol `editor`.
-3. El admin notifica al nuevo editor por email.
+2. El admin invita al usuario desde el panel `/admin` (Supabase envía el email automáticamente).
+3. El nuevo editor completa su contraseña vía el link de invitación (`/reset-password`).
 
 > Migración a flujo automatizado (formulario + panel `/admin`) queda como mejora futura.
 
 ---
 
-## 13. POLÍTICA DE MODERACIÓN DE FEEDBACK
+## 12. POLÍTICA DE MODERACIÓN DE FEEDBACK
 
 ### Formulario público
 
@@ -281,4 +350,41 @@ Proceso manual, sin formulario ni automatización en v1:
 
 ---
 
-_Documento generado en proceso de definición con seguridades.org — no distribuir._
+## 13. CARGA DE RECURSOS EN TANDAS
+
+Para cargar múltiples recursos al mismo tiempo se usa el flujo en `supabase/batch-import/`:
+
+### Archivos
+
+| Archivo          | Uso                                                              |
+| ---------------- | ---------------------------------------------------------------- |
+| `template.csv`   | Plantilla CSV con los campos que completa el equipo editorial    |
+| `prompt-claude.md` | Prompt listo para usar con Claude y generar el SQL del INSERT  |
+
+### Flujo de trabajo
+
+1. Completar `template.csv` con los datos conocidos: `title`, `type`, `scope`, `platforms`, `is_opensource`, `pricing`, `official_url`, `repo_url` y los flags editoriales.
+2. Copiar el prompt de `prompt-claude.md` + el CSV en Claude. Claude devuelve el bloque SQL con `description`, `verdict`, `tags` y `category` generados.
+3. Revisar el output editorialmente.
+4. Pegar el SQL al final de `seed.sql` o directo en el SQL Editor de Supabase.
+
+### Campos generados por Claude
+
+- `description` — qué hace el recurso (2-3 oraciones, sin juicio de valor)
+- `verdict` — evaluación editorial desde perspectiva de seguridad para periodistas/activistas en AL
+- `tags` — array 3-6 palabras clave en CamelCase
+- `category` — una de las categorías del enum
+
+---
+
+## 14. MIGRACIONES SQL APLICADAS
+
+En orden de aplicación sobre el schema base (`schema.sql`):
+
+1. `fix-rls-policies.sql` — Corrige RLS para leer roles desde `app_metadata`
+2. `add-categories.sql` — Agrega categorías al enum `resource_category`
+3. `add-audit-fields.sql` — Agrega campos `has_audit` y `show_audit`
+
+---
+
+_Documento actualizado al 2026-03-16 — no distribuir._

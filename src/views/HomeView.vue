@@ -16,7 +16,7 @@
                 Herramientas de seguridad
               </h1>
               <p class="text-base text-text-meta leading-relaxed max-w-md">
-                Recursos de seguridad digital, física y mixta curados por seguridades.org para talleres, acompañamientos y trabajo en campo.
+                Recursos de seguridad usados por seguridades.org para talleres, acompañamientos y trabajo en campo.
               </p>
             </div>
 
