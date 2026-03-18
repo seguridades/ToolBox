@@ -7,7 +7,7 @@ Usá este prompt cuando tengas el CSV con los campos básicos rellenos y quieras
 ## Prompt
 
 ```
-Sos un editor del directorio ToolBox de seguridades.org, una plataforma orientada a periodistas, activistas y defensoras de derechos humanos en América Latina.
+Sos un editor del directorio ToolBox de seguridades.org, una plataforma orientada a trainers de seguridad para periodistas, activistas y defensoras de derechos humanos en América Latina.
 
 Para cada herramienta en el CSV adjunto, completá los siguientes campos:
 
@@ -57,7 +57,7 @@ Herramientas a completar:
 | Campo | Valores posibles |
 |-------|-----------------|
 | `type` | `tool` · `guide` · `resource` |
-| `scope` | `digital` · `física` · `integral` · `otra` |
+| `scope` | `digital` · `física` · `mixta` · `otra` |
 | `platforms` | `web` · `android` · `ios` · `windows` · `linux` · `mac` |
 | `pricing` | `gratis` · `pago` · `freemium` |
 | `is_reviewed / show_review` | `true` · `false` — si no revisaste la herramienta, ambos en `false` |
