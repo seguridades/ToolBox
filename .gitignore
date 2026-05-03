@@ -27,3 +27,4 @@ dist-ssr
 # Project files
 toolbox-seguridades-spec.md
 supabase/
+.claude

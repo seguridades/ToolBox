@@ -4,8 +4,7 @@ import { useAuthStore } from '../stores/auth'
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: () => import('../views/HomeView.vue'),
+    redirect: '/directorio',
   },
   {
     path: '/directorio',
@@ -43,7 +42,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   if (to.meta.requiresAuth) {
     const auth = useAuthStore()
-    if (!auth.user) return { name: 'home' }
+    if (!auth.user) return { name: 'directory' }
   }
 })
 
