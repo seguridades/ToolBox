@@ -159,12 +159,13 @@ import { useRoute } from 'vue-router'
 import {
   ArrowLeft, BadgeCheck, ShieldCheck, BookOpen,
   ExternalLink, Github, Link2, BriefcaseBusiness,
-  Globe, Smartphone, Monitor, Terminal, Laptop,
 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import { useMaletaStore } from '../stores/maleta'
 import { useToast } from '../composables/useToast'
 import { useHead } from '../composables/useHead'
+import { TYPE_LABELS, SCOPE_LABELS, PRICING_LABELS } from '../constants/labels'
+import { getTypeBadgeClass, getPricingBadgeClass, getPlatformIcon, formatDate } from '../utils/resource'
 
 const route    = useRoute()
 const maleta   = useMaletaStore()
@@ -215,34 +216,10 @@ async function copyLink() {
   setTimeout(() => { copied.value = false }, 2000)
 }
 
-const typeLabel    = computed(() => ({ tool: 'Herramienta', guide: 'Guía', resource: 'Recurso' }[resource.value?.type]))
-const pricingLabel = computed(() => ({ gratis: 'Gratis', pago: 'Pago', freemium: 'Freemium' }[resource.value?.pricing]))
-const scopeLabel   = { digital: 'Digital', 'física': 'Física', otra: 'Otra', integral: 'Integral' }
-
-const typeBadgeClass = computed(() => {
-  const base = 'text-xs font-semibold px-2 py-0.5 rounded-full'
-  return {
-    tool:     `${base} bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300`,
-    guide:    `${base} bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300`,
-    resource: `${base} bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300`,
-  }[resource.value?.type] ?? base
-})
-
-const pricingBadgeClass = computed(() => {
-  const base = 'text-xs font-medium px-2 py-0.5 rounded-full'
-  return {
-    gratis:   `${base} bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400`,
-    pago:     `${base} bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400`,
-    freemium: `${base} bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400`,
-  }[resource.value?.pricing] ?? base
-})
-
-function platformIcon(p) {
-  return { web: Globe, android: Smartphone, ios: Smartphone, windows: Monitor, linux: Terminal, mac: Laptop }[p] ?? Globe
-}
-
-function formatDate(ts) {
-  if (!ts) return '—'
-  return new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(ts))
-}
+const typeLabel         = computed(() => TYPE_LABELS[resource.value?.type])
+const pricingLabel      = computed(() => PRICING_LABELS[resource.value?.pricing])
+const scopeLabel        = SCOPE_LABELS
+const typeBadgeClass    = computed(() => getTypeBadgeClass(resource.value?.type))
+const pricingBadgeClass = computed(() => getPricingBadgeClass(resource.value?.pricing))
+const platformIcon      = getPlatformIcon
 </script>

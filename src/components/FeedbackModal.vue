@@ -38,17 +38,17 @@
             <input v-model="form.alias" type="text" placeholder="Cómo querés que te llamemos" class="field-input" />
           </div>
 
-          <div class="space-y-1">
-            <label class="text-xs font-medium text-text-meta dark:text-gray-400 uppercase tracking-wide">Email <span class="normal-case font-normal">(opcional)</span></label>
-            <input v-model="form.email" type="email" placeholder="Para seguimiento si lo autorizás" class="field-input" />
-          </div>
-
           <label class="flex items-start gap-2.5 cursor-pointer">
             <input type="checkbox" v-model="form.contact_consent" class="mt-0.5 w-3.5 h-3.5 rounded accent-primary shrink-0" />
             <span class="text-xs text-text-meta dark:text-gray-400 leading-relaxed">
               Doy consentimiento para ser contactado para más información y seguimiento
             </span>
           </label>
+
+          <div v-if="form.contact_consent" class="space-y-1">
+            <label class="text-xs font-medium text-text-meta dark:text-gray-400 uppercase tracking-wide">Email <span class="normal-case font-normal">(opcional)</span></label>
+            <input v-model="form.email" type="email" placeholder="Para seguimiento si lo autorizás" class="field-input" />
+          </div>
 
           <p v-if="error" class="text-xs text-red-500">{{ error }}</p>
 

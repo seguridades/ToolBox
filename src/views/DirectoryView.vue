@@ -46,23 +46,31 @@
         </span>
       </div>
 
-      <!-- Conteo + limpiar -->
-      <div v-if="!store.loading" class="flex items-center justify-between mb-4">
-        <p class="text-xs text-text-meta dark:text-gray-400">
+      <!-- Conteo + ordenar + limpiar -->
+      <div v-if="!store.loading" class="flex items-center justify-between gap-4 mb-4">
+        <p class="text-xs text-text-meta dark:text-gray-400 shrink-0">
           <template v-if="totalPages > 1">
-            {{ rangeStart }}–{{ rangeEnd }} de {{ store.filtered.length }} resultado{{ store.filtered.length !== 1 ? 's' : '' }}
+            {{ rangeStart }}–{{ rangeEnd }} de {{ sorted.length }} resultado{{ sorted.length !== 1 ? 's' : '' }}
           </template>
           <template v-else>
-            {{ store.filtered.length }} resultado{{ store.filtered.length !== 1 ? 's' : '' }}
+            {{ sorted.length }} resultado{{ sorted.length !== 1 ? 's' : '' }}
           </template>
         </p>
-        <button
-          v-if="activeFilterCount > 0"
-          class="text-xs text-primary hover:underline"
-          @click="store.resetFilters"
-        >
-          Limpiar todo
-        </button>
+        <div class="flex items-center gap-3">
+          <select
+            v-model="sort"
+            class="text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-text-meta dark:text-gray-400 rounded-xl px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          >
+            <option v-for="opt in SORT_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
+          <button
+            v-if="activeFilterCount > 0"
+            class="text-xs text-primary hover:underline shrink-0"
+            @click="store.resetFilters"
+          >
+            Limpiar todo
+          </button>
+        </div>
       </div>
 
       <!-- Skeleton -->
@@ -150,6 +158,7 @@ import FeedbackModal from '../components/FeedbackModal.vue'
 import ResourceDetailModal from '../components/ResourceDetailModal.vue'
 import { useResourcesStore } from '../stores/resources'
 import { useHead } from '../composables/useHead'
+import { TYPE_LABELS, SCOPE_LABELS, PRICING_LABELS, PLATFORM_LABELS } from '../constants/labels'
 
 useHead({ title: 'Listado', description: 'Explorá y filtrá herramientas, guías y recursos de seguridad digital y física.' })
 
@@ -170,16 +179,35 @@ watch(searchInput, (val) => {
 })
 watch(() => store.filters.search, (val) => { searchInput.value = val })
 
+// --- Ordenamiento ---
+const SORT_OPTIONS   = [
+  { value: 'reciente', label: 'Más reciente' },
+  { value: 'az',       label: 'A–Z' },
+  { value: 'za',       label: 'Z–A' },
+  { value: 'precio',   label: 'Gratis primero' },
+]
+const PRICING_ORDER  = { gratis: 0, freemium: 1, pago: 2 }
+const sort           = ref('reciente')
+
+const sorted = computed(() => {
+  const list = [...store.filtered]
+  if (sort.value === 'az')     return list.sort((a, b) => a.title.localeCompare(b.title, 'es'))
+  if (sort.value === 'za')     return list.sort((a, b) => b.title.localeCompare(a.title, 'es'))
+  if (sort.value === 'precio') return list.sort((a, b) => (PRICING_ORDER[a.pricing] ?? 99) - (PRICING_ORDER[b.pricing] ?? 99))
+  return list
+})
+
 // --- Paginación ---
 const PAGE_SIZE  = 12
 const page       = ref(1)
-const totalPages = computed(() => Math.ceil(store.filtered.length / PAGE_SIZE) || 1)
+const totalPages = computed(() => Math.ceil(sorted.value.length / PAGE_SIZE) || 1)
 const rangeStart = computed(() => (page.value - 1) * PAGE_SIZE + 1)
-const rangeEnd   = computed(() => Math.min(page.value * PAGE_SIZE, store.filtered.length))
-const paginated  = computed(() => store.filtered.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
+const rangeEnd   = computed(() => Math.min(page.value * PAGE_SIZE, sorted.value.length))
+const paginated  = computed(() => sorted.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
 
-// Reset page when filters or total changes
+// Reset page when filters or sort changes
 watch(() => store.filtered.length, () => { page.value = 1 })
+watch(sort, () => { page.value = 1 })
 
 // --- Filtros activos ---
 const activeFilterCount = computed(() => {
@@ -194,10 +222,6 @@ const activeFilterCount = computed(() => {
   )
 })
 
-const TYPE_LABELS     = { tool: 'Herramienta', guide: 'Guía', resource: 'Recurso' }
-const SCOPE_LABELS    = { digital: 'Digital', física: 'Física', otra: 'Otra', integral: 'Integral' }
-const PRICING_LABELS  = { gratis: 'Gratis', freemium: 'Freemium', pago: 'Pago' }
-const PLATFORM_LABELS = { web: 'Web', android: 'Android', ios: 'iOS', windows: 'Windows', linux: 'Linux', mac: 'Mac' }
 
 const activeChips = computed(() => {
   const f = store.filters

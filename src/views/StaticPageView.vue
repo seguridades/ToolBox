@@ -23,6 +23,7 @@
 import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { useHead } from '../composables/useHead'
 
 const route  = useRoute()
@@ -44,7 +45,7 @@ async function loadPage(slug) {
   const loader  = pages[slug]
   if (loader) {
     const mod = await loader()
-    html.value = marked.parse(mod.default)
+    html.value = DOMPurify.sanitize(marked.parse(mod.default))
   }
   loading.value = false
 }

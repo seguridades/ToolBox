@@ -16,9 +16,19 @@
               class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-text-meta dark:text-gray-400"
             >{{ scopeLabel[s] }}</span>
           </div>
-          <button class="text-text-meta dark:text-gray-400 hover:text-text-main dark:hover:text-gray-100 transition-colors shrink-0" @click="$emit('close')">
-            <X class="w-5 h-5" />
-          </button>
+          <div class="flex items-center gap-1 shrink-0">
+            <RouterLink
+              :to="`/directorio/${resource.id}`"
+              class="p-1 text-text-meta dark:text-gray-400 hover:text-text-main dark:hover:text-gray-100 transition-colors"
+              title="Ver página completa"
+              @click="$emit('close')"
+            >
+              <ExternalLink class="w-4 h-4" />
+            </RouterLink>
+            <button class="p-1 text-text-meta dark:text-gray-400 hover:text-text-main dark:hover:text-gray-100 transition-colors" @click="$emit('close')">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <!-- Contenido scrolleable -->
@@ -145,7 +155,7 @@
                 ? 'bg-primary border-primary text-white'
                 : 'border-gray-200 dark:border-gray-700 text-text-meta dark:text-gray-400 hover:border-primary hover:text-primary',
             ]"
-            @click="maleta.toggle(resource)"
+            @click="toggleMaleta"
           >
             <BriefcaseBusiness class="w-4 h-4" />
             {{ inMaleta ? 'En mi kit' : 'Agregar al kit' }}
@@ -161,11 +171,13 @@ import { computed, onMounted, ref } from 'vue'
 import {
   X, BadgeCheck, ShieldCheck, BookOpen, ExternalLink,
   Github, MessageSquare, BriefcaseBusiness, Link2,
-  Globe, Smartphone, Monitor, Terminal, Laptop,
 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import { useMaletaStore } from '../stores/maleta'
 import { useScrollLock } from '../composables/useScrollLock'
+import { useToast } from '../composables/useToast'
+import { TYPE_LABELS, SCOPE_LABELS, PRICING_LABELS } from '../constants/labels'
+import { getTypeBadgeClass, getPricingBadgeClass, getPlatformIcon, formatDate } from '../utils/resource'
 
 const props = defineProps({
   resource: { type: Object, required: true },
@@ -175,8 +187,15 @@ defineEmits(['close', 'open-feedback'])
 
 useScrollLock()
 const maleta   = useMaletaStore()
+const { add }  = useToast()
 const manuals  = ref([])
 const copied   = ref(false)
+
+function toggleMaleta() {
+  const adding = !inMaleta.value
+  maleta.toggle(props.resource)
+  add(adding ? `"${props.resource.title}" agregado al kit` : `"${props.resource.title}" quitado del kit`)
+}
 
 async function copyLink() {
   await navigator.clipboard.writeText(`${window.location.origin}/directorio/${props.resource.id}`)
@@ -195,28 +214,10 @@ onMounted(async () => {
   manuals.value = data ?? []
 })
 
-// --- Labels y badges (igual que ToolCard) ---
-const typeLabel = computed(() => ({ tool: 'Herramienta', guide: 'Guía', resource: 'Recurso' }[props.resource.type]))
-const pricingLabel = computed(() => ({ gratis: 'Gratis', pago: 'Pago', freemium: 'Freemium' }[props.resource.pricing]))
-
-const scopeLabel = { digital: 'Digital', 'física': 'Física', otra: 'Otra', integral: 'Integral' }
-
-const typeBadgeClass = computed(() => {
-  const base = 'text-xs font-semibold px-2 py-0.5 rounded-full'
-  return { tool: `${base} bg-violet-100 text-violet-700`, guide: `${base} bg-sky-100 text-sky-700`, resource: `${base} bg-amber-100 text-amber-700` }[props.resource.type]
-})
-
-const pricingBadgeClass = computed(() => {
-  const base = 'text-xs font-medium px-2 py-0.5 rounded-full'
-  return { gratis: `${base} bg-green-50 text-green-700`, pago: `${base} bg-red-50 text-red-600`, freemium: `${base} bg-yellow-50 text-yellow-700` }[props.resource.pricing]
-})
-
-function platformIcon(platform) {
-  return { web: Globe, android: Smartphone, ios: Smartphone, windows: Monitor, linux: Terminal, mac: Laptop }[platform] ?? Globe
-}
-
-function formatDate(ts) {
-  if (!ts) return '—'
-  return new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(ts))
-}
+const typeLabel         = computed(() => TYPE_LABELS[props.resource.type])
+const pricingLabel      = computed(() => PRICING_LABELS[props.resource.pricing])
+const scopeLabel        = SCOPE_LABELS
+const typeBadgeClass    = computed(() => getTypeBadgeClass(props.resource.type))
+const pricingBadgeClass = computed(() => getPricingBadgeClass(props.resource.pricing))
+const platformIcon      = getPlatformIcon
 </script>

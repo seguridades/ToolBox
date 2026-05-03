@@ -57,7 +57,7 @@
     </FilterGroup>
 
     <!-- Plataforma -->
-    <FilterGroup label="Plataforma">
+    <FilterGroup label="Plataforma" hint="solo herramientas">
       <FilterCheckbox
         v-for="opt in platformOptions"
         :key="opt.value"

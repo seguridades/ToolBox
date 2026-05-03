@@ -366,6 +366,8 @@ import ResourceForm from '../components/ResourceForm.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { useHead } from '../composables/useHead'
 import { useCategoriesStore } from '../stores/categories'
+import { TYPE_LABELS } from '../constants/labels'
+import { getTypeBadgeClass, formatDate as formatDateUtil } from '../utils/resource'
 
 useHead({ title: 'Panel de administración' })
 
@@ -390,11 +392,8 @@ const formOpen         = ref(false)
 const editingResource  = ref(null)
 const deleteTarget     = ref(null)
 
-const typeLabel = { tool: 'Herramienta', guide: 'Guía', resource: 'Recurso' }
-function typeBadge(type) {
-  const base = 'text-xs font-medium px-2 py-0.5 rounded-full'
-  return { tool: `${base} bg-violet-100 text-violet-700`, guide: `${base} bg-sky-100 text-sky-700`, resource: `${base} bg-amber-100 text-amber-700` }[type]
-}
+const typeLabel = TYPE_LABELS
+const typeBadge = getTypeBadgeClass
 
 const sortKey = ref('created_at')
 const sortDir = ref('desc')
@@ -552,9 +551,7 @@ async function resolveFeedback(fb) {
   fb.status = 'resuelto'
 }
 
-function formatDate(ts) {
-  return new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(ts))
-}
+const formatDate = (ts) => formatDateUtil(ts, 'short')
 
 onMounted(() => { loadResources(); catStore.fetchAll() })
 

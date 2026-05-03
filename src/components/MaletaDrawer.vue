@@ -39,29 +39,40 @@
           <button class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors" @click="doExportCSV">
             <Sheet class="w-4 h-4" /> Exportar CSV
           </button>
-          <button class="w-full text-xs text-text-meta dark:text-gray-400 hover:text-red-500 transition-colors pt-1" @click="maleta.clear">
+          <button class="w-full text-xs text-text-meta dark:text-gray-400 hover:text-red-500 transition-colors pt-1" @click="clearConfirmOpen = true">
             Vaciar kit
           </button>
         </div>
       </div>
     </Transition>
   </Teleport>
+
+  <ConfirmDialog
+    v-if="clearConfirmOpen"
+    message="¿Vaciar el kit? Esta acción no se puede deshacer."
+    @confirm="doClear"
+    @cancel="clearConfirmOpen = false"
+  />
 </template>
 
 <script setup>
 import { BriefcaseBusiness, X, FileDown, Sheet } from 'lucide-vue-next'
-import { toRef } from 'vue'
+import { ref, toRef } from 'vue'
 import { useMaletaStore } from '../stores/maleta'
 import { exportPDF, exportCSV } from '../composables/useExport'
 import { useScrollLockProp } from '../composables/useScrollLock'
+import ConfirmDialog from './ConfirmDialog.vue'
 
 const props = defineProps({ open: { type: Boolean, required: true } })
 defineEmits(['close'])
 
 useScrollLockProp(toRef(props, 'open'))
-const maleta = useMaletaStore()
+const maleta           = useMaletaStore()
+const clearConfirmOpen = ref(false)
+
 function doExportPDF() { exportPDF(maleta.exportData) }
 function doExportCSV() { exportCSV(maleta.exportData) }
+function doClear()     { maleta.clear(); clearConfirmOpen.value = false }
 </script>
 
 <style scoped>

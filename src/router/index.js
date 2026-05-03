@@ -42,7 +42,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   if (to.meta.requiresAuth) {
     const auth = useAuthStore()
-    if (!auth.user) return { name: 'directory' }
+    if (auth.loading || !auth.user) return { name: 'directory' }
   }
 })
 
