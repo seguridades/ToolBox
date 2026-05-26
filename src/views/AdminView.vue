@@ -133,6 +133,11 @@
       </div>
     </div>
 
+    <!-- Tab: Importar JSON -->
+    <div v-if="activeTab === 'import'">
+      <JsonImporter @imported="onImported" />
+    </div>
+
     <!-- Tab: Feedback (solo admin) -->
     <div v-if="activeTab === 'feedback'" class="space-y-4">
       <div class="flex items-center justify-between">
@@ -364,6 +369,7 @@ import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/auth'
 import ResourceForm from '../components/ResourceForm.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import JsonImporter from '../components/JsonImporter.vue'
 import { useHead } from '../composables/useHead'
 import { useCategoriesStore } from '../stores/categories'
 import { TYPE_LABELS } from '../constants/labels'
@@ -377,6 +383,7 @@ const catStore = useCategoriesStore()
 // Tabs
 const allTabs = [
   { id: 'resources',  label: 'Recursos',    roles: ['editor', 'admin'] },
+  { id: 'import',     label: 'Importar',    roles: ['editor', 'admin'] },
   { id: 'categories', label: 'Categorías',  roles: ['admin'] },
   { id: 'feedback',   label: 'Feedback',    roles: ['admin'] },
   { id: 'users',      label: 'Usuarios',    roles: ['admin'] },
@@ -434,6 +441,11 @@ function openForm(resource) {
 function onSaved() {
   formOpen.value = false
   loadResources()
+}
+
+function onImported() {
+  loadResources()
+  activeTab.value = 'resources'
 }
 
 function confirmDelete(resource) {
