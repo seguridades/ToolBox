@@ -45,7 +45,7 @@
         Analizar
       </button>
       <button
-        v-if="rows.length || rawJson"
+        v-if="rows.length || rawJson || parseError"
         class="text-xs text-text-meta dark:text-gray-400 hover:text-text-main dark:hover:text-gray-100 transition-colors"
         @click="reset"
       >
@@ -124,13 +124,15 @@ import { ref, computed } from 'vue'
 import { Upload, FileDown, Loader2 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/auth'
+import { useCategoriesStore } from '../stores/categories'
 import { useToast } from '../composables/useToast'
 import { TYPE_LABELS } from '../constants/labels'
 
 const emit = defineEmits(['imported'])
 
-const auth  = useAuthStore()
-const toast = useToast()
+const auth     = useAuthStore()
+const catStore = useCategoriesStore()
+const toast    = useToast()
 
 const rawJson    = ref('')
 const parseError = ref(null)
@@ -167,6 +169,10 @@ function readFile(file) {
 function validate(item) {
   const errors = []
 
+  // Fix C1: guard against null/primitive elements in the array
+  if (item === null || typeof item !== 'object' || Array.isArray(item))
+    return ['el elemento debe ser un objeto JSON, no un primitivo o null']
+
   if (!item.title?.trim())
     errors.push('title requerido')
 
@@ -182,14 +188,25 @@ function validate(item) {
   if (item.pricing && !VALID_PRICING.includes(item.pricing))
     errors.push(`pricing debe ser: ${VALID_PRICING.join(' | ')} (recibido: "${item.pricing}")`)
 
+  // Fix C6: validate tags shape
+  if (item.tags !== undefined && !Array.isArray(item.tags))
+    errors.push('tags debe ser un array (ej: ["cifrado", "privacidad"])')
+
+  // Fix C7 (platforms): normalize case before comparison
   if (item.platforms) {
-    if (!Array.isArray(item.platforms))
+    if (!Array.isArray(item.platforms)) {
       errors.push('platforms debe ser un array')
-    else {
-      const bad = item.platforms.filter((p) => !VALID_PLATFORMS.includes(p))
+    } else {
+      const bad = item.platforms.filter((p) => !VALID_PLATFORMS.includes(String(p).toLowerCase().trim()))
       if (bad.length) errors.push(`plataformas no reconocidas: ${bad.join(', ')}`)
     }
   }
+
+  // Fix C3: cross-field flag consistency
+  if (item.show_review && !item.is_reviewed)
+    errors.push('show_review no puede ser true si is_reviewed es false')
+  if (item.show_audit && !item.has_audit)
+    errors.push('show_audit no puede ser true si has_audit es false')
 
   return errors
 }
@@ -227,36 +244,54 @@ async function doImport() {
 
   const payload = rows.value
     .filter((r) => !r.errors.length)
-    .map(({ data: d }) => ({
-      title:         d.title.trim(),
-      type:          d.type,
-      scope:         d.scope,
-      category:      d.category.trim(),
-      description:   d.description?.trim() || null,
-      verdict:       d.verdict?.trim()      || null,
-      pricing:       d.pricing              || 'gratis',
-      platforms:     d.type === 'tool' ? (d.platforms ?? null) : null,
-      official_url:  d.official_url         || null,
-      repo_url:      d.repo_url             || null,
-      tags:          Array.isArray(d.tags) ? d.tags.map((t) => t.trim()).filter(Boolean) : [],
-      is_opensource: d.is_opensource ?? false,
-      is_reviewed:   d.is_reviewed   ?? false,
-      show_review:   d.show_review   ?? false,
-      has_audit:     d.has_audit     ?? false,
-      show_audit:    d.show_audit    ?? false,
-      created_by:    userEmail,
-      updated_by:    userEmail,
-    }))
+    .map(({ data: d }) => {
+      const isReviewed = d.is_reviewed ?? false
+      const hasAudit   = d.has_audit   ?? false
+      return {
+        title:         d.title.trim(),
+        type:          d.type,
+        scope:         d.scope,
+        category:      d.category.trim(),
+        description:   d.description?.trim() || null,
+        verdict:       d.verdict?.trim()      || null,
+        pricing:       d.pricing              || 'gratis',
+        // Fix C7: normalize platform casing
+        platforms:     d.type === 'tool'
+          ? (d.platforms?.map((p) => String(p).toLowerCase().trim()) ?? null)
+          : null,
+        official_url:  d.official_url || null,
+        repo_url:      d.repo_url     || null,
+        // Fix C2 & C5: coerce each tag to string before trimming
+        tags:          Array.isArray(d.tags)
+          ? d.tags.map((t) => String(t).trim()).filter(Boolean)
+          : [],
+        is_opensource: d.is_opensource ?? false,
+        is_reviewed:   isReviewed,
+        // Fix C3: enforce flag dependencies
+        show_review:   (d.show_review ?? false) && isReviewed,
+        has_audit:     hasAudit,
+        show_audit:    (d.show_audit ?? false) && hasAudit,
+        created_by:    userEmail,
+        updated_by:    userEmail,
+      }
+    })
 
-  const { error } = await supabase.from('resources').insert(payload)
-  importing.value = false
-
-  if (error) {
-    toast.add(`Error al importar: ${error.message}`, 'error')
-  } else {
-    toast.add(`${payload.length} recurso${payload.length !== 1 ? 's' : ''} importado${payload.length !== 1 ? 's' : ''} correctamente.`, 'success')
-    emit('imported')
-    reset()
+  // Fix C2: try/finally guarantees importing resets even on unexpected rejection
+  try {
+    const { error } = await supabase.from('resources').insert(payload)
+    if (error) {
+      toast.add(`Error al importar: ${error.message}`, 'error')
+    } else {
+      toast.add(`${payload.length} recurso${payload.length !== 1 ? 's' : ''} importado${payload.length !== 1 ? 's' : ''} correctamente.`, 'success')
+      // Fix C8: refresh category store so new category names appear in dropdowns
+      catStore.fetchAll()
+      emit('imported')
+      reset()
+    }
+  } catch (e) {
+    toast.add(`Error inesperado: ${e.message}`, 'error')
+  } finally {
+    importing.value = false
   }
 }
 </script>
