@@ -85,13 +85,13 @@
             >
               <td class="px-4 py-3 text-text-meta dark:text-gray-400 text-xs">{{ i + 1 }}</td>
               <td class="px-4 py-3 font-medium text-text-main dark:text-gray-100 max-w-[180px] truncate">
-                {{ row.data.title || '—' }}
+                {{ row.data?.title || '—' }}
               </td>
               <td class="px-4 py-3 text-text-meta dark:text-gray-400">
-                {{ TYPE_LABELS[row.data.type] ?? row.data.type ?? '—' }}
+                {{ TYPE_LABELS[row.data?.type] ?? row.data?.type ?? '—' }}
               </td>
               <td class="px-4 py-3 text-text-meta dark:text-gray-400 hidden sm:table-cell max-w-[140px] truncate">
-                {{ row.data.category || '—' }}
+                {{ row.data?.category || '—' }}
               </td>
               <td class="px-4 py-3">
                 <span v-if="!row.errors.length" class="text-xs font-medium text-green-600 dark:text-green-400">OK</span>
@@ -157,12 +157,18 @@ function onFileChange(e) {
 function onDrop(e) {
   dragging.value = false
   const file = e.dataTransfer.files[0]
-  if (file) readFile(file)
+  if (!file) return
+  if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
+    parseError.value = 'El archivo debe ser un .json'
+    return
+  }
+  readFile(file)
 }
 
 function readFile(file) {
   const reader = new FileReader()
-  reader.onload = (ev) => { rawJson.value = ev.target.result }
+  reader.onload  = (ev) => { rawJson.value = ev.target.result }
+  reader.onerror = () => { parseError.value = 'No se pudo leer el archivo.' }
   reader.readAsText(file)
 }
 
@@ -182,8 +188,11 @@ function validate(item) {
   if (!Array.isArray(item.scope) || !item.scope.length || item.scope.some((s) => !VALID_SCOPES.includes(s)))
     errors.push(`scope debe ser un array con valores: ${VALID_SCOPES.join(', ')}`)
 
-  if (!item.category?.trim())
+  if (!item.category?.trim()) {
     errors.push('category requerida')
+  } else if (catStore.names.length && !catStore.names.includes(item.category.trim())) {
+    errors.push(`categoría desconocida: "${item.category.trim()}" (no existe en el sistema)`)
+  }
 
   if (item.pricing && !VALID_PRICING.includes(item.pricing))
     errors.push(`pricing debe ser: ${VALID_PRICING.join(' | ')} (recibido: "${item.pricing}")`)
@@ -283,8 +292,7 @@ async function doImport() {
       toast.add(`Error al importar: ${error.message}`, 'error')
     } else {
       toast.add(`${payload.length} recurso${payload.length !== 1 ? 's' : ''} importado${payload.length !== 1 ? 's' : ''} correctamente.`, 'success')
-      // Fix C8: refresh category store so new category names appear in dropdowns
-      catStore.fetchAll()
+      await catStore.refresh()
       emit('imported')
       reset()
     }
