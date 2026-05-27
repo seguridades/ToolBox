@@ -159,6 +159,7 @@ function onDrop(e) {
   const file = e.dataTransfer.files[0]
   if (!file) return
   if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
+    rows.value = []
     parseError.value = 'El archivo debe ser un .json'
     return
   }
@@ -190,7 +191,7 @@ function validate(item) {
 
   if (!item.category?.trim()) {
     errors.push('category requerida')
-  } else if (catStore.names.length && !catStore.names.includes(item.category.trim())) {
+  } else if (catStore.names.length && !catStore.names.some((n) => n.toLowerCase() === item.category.trim().toLowerCase())) {
     errors.push(`categoría desconocida: "${item.category.trim()}" (no existe en el sistema)`)
   }
 
@@ -292,9 +293,9 @@ async function doImport() {
       toast.add(`Error al importar: ${error.message}`, 'error')
     } else {
       toast.add(`${payload.length} recurso${payload.length !== 1 ? 's' : ''} importado${payload.length !== 1 ? 's' : ''} correctamente.`, 'success')
-      await catStore.refresh()
       emit('imported')
       reset()
+      catStore.refresh().catch(() => {})
     }
   } catch (e) {
     toast.add(`Error inesperado: ${e.message}`, 'error')

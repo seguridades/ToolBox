@@ -24,11 +24,15 @@ Vue 3 + Vite SPA backed by Supabase (PostgreSQL + Auth). Deployed on Vercel with
 - `auth.js` — Supabase session, role check (`admin`/`editor`/null), persisted auth state
 - `resources.js` — Full resource catalog + all reactive filters (search, type, scope, category, tags, platform, pricing, opensource). Filtering is a single computed property over the full dataset.
 - `maleta.js` — User's curated "kit" (like a cart); persisted to localStorage via `pinia-plugin-persistedstate`
-- `categories.js` — Category CRUD
+- `categories.js` — Category CRUD. `fetchAll()` is a no-op if already loaded; use `refresh()` to force a re-fetch (e.g., after bulk import).
 
 **Data model**: Supabase tables `resources` and `categories`. Resources have: `title`, `type` (tool/guide/resource), `scope` (digital/física/otra/integral), `category`, `pricing` (gratis/freemium/pago), `platforms` (array), `is_opensource`, `is_reviewed`.
 
 **Composables** (`src/composables/`): `useTheme` (class-based dark/light, localStorage), `useToast`, `useExport` (PDF via jsPDF, CSV — both lazy-imported), `useScrollLock`, `useMeta`.
+
+**Admin panel** (`src/views/AdminView.vue`): Tab-based UI, role-gated. Tabs: `resources` (editor+), `import` (editor+), `categories` (admin), `feedback` (admin), `users` (admin). The `import` tab renders `JsonImporter.vue`.
+
+**JsonImporter** (`src/components/JsonImporter.vue`): Bulk import via file drop or textarea paste. Validates each row client-side (type, scope, pricing enums; category against `catStore.names` — case-insensitive). On success: emits `imported`, then does a best-effort `catStore.refresh()` fire-and-forget so a network failure on the re-fetch never suppresses the event.
 
 **UI conventions**:
 - All copy is in Spanish.
